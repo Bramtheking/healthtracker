@@ -64,28 +64,27 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
   }
 
   // Start the countdown for 60 seconds
-  void _startCountdown() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (countdown > 0) {
-          countdown--;
-        } else {
-          // When countdown finishes, simulate the heart rate
-          _simulateHeartRate();
-        }
-      });
+  // Start the countdown for 60 seconds
+void _startCountdown() {
+  _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    setState(() {
+      if (countdown > 0) {
+        countdown--;
+      } else {
+        timer.cancel(); // Stop the timer once countdown finishes
+        _simulateHeartRate(); // Call to simulate heart rate
+      }
     });
-  }
+  });
+}
 
-  // Simulate the heart rate after the countdown
-  void _simulateHeartRate() {
-    // Generate a random heart rate within a normal range (60-100 bpm)
-    Random random = Random();
-    currentHeartRate = (60 + random.nextInt(40)) as double; // Random between 60 and 100
-    setState(() {});
-    // Add the simulated heart rate to the Hive box
-    _addHeartRate(currentHeartRate);
-  }
+// Simulate the heart rate after the countdown
+void _simulateHeartRate() {
+  Random random = Random();
+  currentHeartRate = 60.0 + random.nextInt(40); // Generate random heart rate
+  _addHeartRate(currentHeartRate); // Save to Hive
+  setState(() {}); // Ensure UI reflects the new heart rate
+}
 
   // Add the current heart rate to the Hive box
   void _addHeartRate(double rate) {

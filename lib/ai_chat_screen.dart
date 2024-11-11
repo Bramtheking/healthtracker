@@ -2,25 +2,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class AiChatScreen extends StatefulWidget {
+class HealthAiChatScreen extends StatefulWidget {
   @override
-  _AiChatScreenState createState() => _AiChatScreenState();
+  _HealthAiChatScreenState createState() => _HealthAiChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> {
+class _HealthAiChatScreenState extends State<HealthAiChatScreen> {
   TextEditingController _controller = TextEditingController();
   List<Map<String, String>> messages = [];
   bool isLoading = false;
 
-  // Replace this with your actual Hugging Face API key
+  // Hugging Face API key
   final String apiKey = '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';
 
-  Future<void> getGPT2Response(String message) async {
+  Future<void> getMedicalResponse(String question) async {
     setState(() {
       isLoading = true;
     });
 
-    final apiUrl = "https://api-inference.huggingface.co/models/gpt2";
+    final apiUrl = "https://api-inference.huggingface.co/models/dmis-lab/biobert-base-cased-v1.1";
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {
@@ -28,24 +28,26 @@ class _AiChatScreenState extends State<AiChatScreen> {
         "Content-Type": "application/json",
       },
       body: json.encode({
-        "inputs": message,  // Send message directly without prefix
-        "parameters": {"max_length": 100},
+        "inputs": {
+          "question": question,
+          "context": "Provide a medically relevant response based on general health knowledge." // Placeholder context
+        },
+        "parameters": {"max_answer_len": 50},
       }),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      String gpt2Response = data[0]["generated_text"].toString().trim();
+      String medicalResponse = data["answer"].toString().trim();
       setState(() {
-        messages.add({"sender": "AI", "text": gpt2Response});
+        messages.add({"sender": "AI", "text": medicalResponse});
         isLoading = false;
       });
     } else {
       setState(() {
         isLoading = false;
       });
-      // Handle API failure
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get response from GPT-2')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get response from the medical AI model')));
     }
   }
 
@@ -96,7 +98,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: 'Ask me a medical question...',
+                      hintText: 'Ask me a health question...',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
@@ -111,7 +113,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         messages.add({"sender": "User", "text": userMessage});
                       });
                       _controller.clear();
-                      getGPT2Response(userMessage);
+                      getMedicalResponse(userMessage);
                     }
                   },
                 ),
