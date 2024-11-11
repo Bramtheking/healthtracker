@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:fl_chart/fl_chart.dart'; // For charts
-// For charts
-// Food data class to store food name and calories
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+
 class Food {
   final String name;
   final int calories;
+  final String mealType; // breakfast, lunch, dinner, snack
 
-  Food({required this.name, required this.calories});
+  Food({required this.name, required this.calories, required this.mealType});
 }
 
 class DietScreen extends StatefulWidget {
@@ -16,31 +17,17 @@ class DietScreen extends StatefulWidget {
 }
 
 class _DietScreenState extends State<DietScreen> {
-  int dailyCalorieGoal = 2000;  // Set a daily calorie goal
+  int dailyCalorieGoal = 2000;
+  int waterGoal = 8; // glasses per day
+  int currentWaterIntake = 0;
+
   List<Food> foodList = [
-    Food(name: 'Apple', calories: 95),
-    Food(name: 'Banana', calories: 105),
-    Food(name: 'Carrot', calories: 41),
-    Food(name: 'Chicken Breast', calories: 165),
-    Food(name: 'Egg', calories: 78),
-    Food(name: 'Broccoli', calories: 55),
-    Food(name: 'Rice (1 cup)', calories: 200),
-    Food(name: 'Avocado', calories: 234),
-    Food(name: 'Salmon', calories: 206),
-    Food(name: 'Almonds (1 oz)', calories: 160),
-    Food(name: 'Greek Yogurt', calories: 100),
-    Food(name: 'Orange', calories: 62),
-    Food(name: 'Spinach', calories: 23),
-    Food(name: 'Sweet Potato', calories: 103),
-    Food(name: 'Tomato', calories: 22),
-    Food(name: 'Oats (1 cup)', calories: 154),
-    Food(name: 'Cucumber', calories: 16),
-    Food(name: 'Cheese (1 slice)', calories: 113),
-    Food(name: 'Turkey Breast', calories: 135),
-    Food(name: 'Peanut Butter (1 tbsp)', calories: 94),
+    Food(name: 'Apple', calories: 95, mealType: 'snack'),
+    Food(name: 'Banana', calories: 105, mealType: 'breakfast'),
+    // Add more predefined foods if necessary
   ];
 
-  List<Food> selectedFoods = [];  // List of selected foods
+  List<Food> selectedFoods = [];
   Box? foodBox;
 
   @override
@@ -50,31 +37,40 @@ class _DietScreenState extends State<DietScreen> {
   }
 
   void _openHiveBox() async {
-    foodBox = await Hive.openBox('foodBox');
+    foodBox = await Hive.openBox('dietBox');
     setState(() {
-      selectedFoods = foodBox?.values.map((e) => Food(name: e['name'], calories: e['calories'])).toList() ?? [];
+      selectedFoods = foodBox?.get('selectedFoods', defaultValue: []).map((e) => Food(name: e['name'], calories: e['calories'], mealType: e['mealType'])).toList() ?? [];
+      currentWaterIntake = foodBox?.get('currentWaterIntake', defaultValue: 0);
     });
   }
 
-  // Calculate total calories of selected foods
   int _calculateTotalCalories() {
     return selectedFoods.fold(0, (total, food) => total + food.calories);
   }
 
-  // Add a food item to the selected list
+  int _calculateMealCalories(String mealType) {
+    return selectedFoods.where((food) => food.mealType == mealType).fold(0, (total, food) => total + food.calories);
+  }
+
   void _addFood(Food food) {
     setState(() {
       selectedFoods.add(food);
     });
-    foodBox?.put('selectedFoods', selectedFoods.map((e) => {'name': e.name, 'calories': e.calories}).toList());
+    foodBox?.put('selectedFoods', selectedFoods.map((e) => {'name': e.name, 'calories': e.calories, 'mealType': e.mealType}).toList());
   }
 
-  // Remove a food item from the selected list
   void _removeFood(Food food) {
     setState(() {
       selectedFoods.remove(food);
     });
-    foodBox?.put('selectedFoods', selectedFoods.map((e) => {'name': e.name, 'calories': e.calories}).toList());
+    foodBox?.put('selectedFoods', selectedFoods.map((e) => {'name': e.name, 'calories': e.calories, 'mealType': e.mealType}).toList());
+  }
+
+  void _updateWaterIntake(int glasses) {
+    setState(() {
+      currentWaterIntake += glasses;
+    });
+    foodBox?.put('currentWaterIntake', currentWaterIntake);
   }
 
   @override
@@ -93,63 +89,39 @@ class _DietScreenState extends State<DietScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section with date and daily overview
             _buildHeaderSection(),
-
             SizedBox(height: 20),
-
-            // Calorie Breakdown
             _buildCalorieBreakdown(totalCalories, remainingCalories),
-
             SizedBox(height: 20),
-
-            // Recent Meals Section
-            _buildRecentMealsSection(),
-
+            _buildWaterTracker(),
             SizedBox(height: 20),
-
-            // Nutrient Breakdown
-            _buildNutrientBreakdown(),
-
+            _buildMealRecommendations(),
             SizedBox(height: 20),
-
-            // Food Picker
             _buildFoodPicker(),
-
             SizedBox(height: 20),
-
-            // Floating Action Button to add a meal
-            _buildAddMealButton(),
+            _buildWeeklyTrends(),
           ],
         ),
       ),
+      floatingActionButton: _buildAddMealButton(),
     );
   }
 
-  // Header Section
   Widget _buildHeaderSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Daily Overview',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 8),
-        Text(
-          'Date: ${DateTime.now().toLocal().toString().split(' ')[0]}',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
+        Text('Daily Overview', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('Date: ${DateFormat.yMMMd().format(DateTime.now())}', style: TextStyle(fontSize: 16, color: Colors.grey)),
       ],
     );
   }
 
-  // Calorie Breakdown Section
   Widget _buildCalorieBreakdown(int totalCalories, int remainingCalories) {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildCircularProgressBar('Eaten', totalCalories, Colors.green),
             _buildCircularProgressBar('Remaining', remainingCalories, Colors.blue),
@@ -160,139 +132,103 @@ class _DietScreenState extends State<DietScreen> {
     );
   }
 
-  // Circular Progress Bar Widget for calorie tracking
   Widget _buildCircularProgressBar(String label, int value, Color color) {
     return Column(
       children: [
         Text(label, style: TextStyle(fontSize: 16, color: color)),
-        SizedBox(height: 4),
         CircularProgressIndicator(
           value: value / dailyCalorieGoal,
           strokeWidth: 8,
           backgroundColor: color.withOpacity(0.2),
           valueColor: AlwaysStoppedAnimation(color),
         ),
-        SizedBox(height: 8),
         Text('$value kcal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
       ],
     );
   }
 
-  // Recent Meals Section (Horizontal scrollable)
-  Widget _buildRecentMealsSection() {
+  Widget _buildWaterTracker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recent Meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 10),
-        Container(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: selectedFoods.length,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: EdgeInsets.only(right: 10),
-                child: Container(
-                  width: 100,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.fastfood, size: 50, color: Colors.orange),
-                      Text(selectedFoods[index].name),
-                      Text('${selectedFoods[index].calories} kcal'),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+        Text('Water Intake', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('$currentWaterIntake of $waterGoal glasses', style: TextStyle(fontSize: 16)),
+            ElevatedButton(
+              onPressed: () => _updateWaterIntake(1),
+              child: Text('Add Glass'),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  // Nutrient Breakdown Section (Macronutrients and Micronutrients)
- Widget _buildNutrientBreakdown() {
-  return Column(
-    children: [
-      Text('Macronutrients Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      SizedBox(height: 10),
-      Container(
-        height: 150,
-        child: PieChart(
-          PieChartData(
-            sections: [
-              PieChartSectionData(
-                color: Colors.green,
-                value: 45,
-                title: 'Carbs',
-                radius: 50,
-              ),
-              PieChartSectionData(
-                color: Colors.blue,
-                value: 30,
-                title: 'Proteins',
-                radius: 50,
-              ),
-              PieChartSectionData(
-                color: Colors.orange,
-                value: 25,
-                title: 'Fats',
-                radius: 50,
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  );
-}
+  Widget _buildMealRecommendations() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Meal Recommendations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ...['breakfast', 'lunch', 'dinner', 'snack'].map((meal) {
+          int mealCalories = _calculateMealCalories(meal);
+          String recommendation = mealCalories > dailyCalorieGoal / 3 ? 'Consider lighter options.' : 'Feel free to add more!';
+          return ListTile(
+            title: Text('$meal: $mealCalories kcal'),
+            subtitle: Text(recommendation),
+          );
+        }).toList(),
+      ],
+    );
+  }
 
-
-  // Food Picker Section
   Widget _buildFoodPicker() {
+    return Expanded(
+      child: ListView.builder(
+        itemCount: foodList.length,
+        itemBuilder: (context, index) {
+          final food = foodList[index];
+          return ListTile(
+            title: Text(food.name),
+            subtitle: Text('${food.calories} kcal'),
+            trailing: IconButton(
+              icon: Icon(selectedFoods.contains(food) ? Icons.remove_circle : Icons.add_circle),
+              onPressed: () {
+                selectedFoods.contains(food) ? _removeFood(food) : _addFood(food);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWeeklyTrends() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Pick Your Meal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 10),
-        Expanded(
-          child: ListView.builder(
-            itemCount: foodList.length,
-            itemBuilder: (context, index) {
-              final food = foodList[index];
-              return ListTile(
-                title: Text(food.name),
-                subtitle: Text('${food.calories} kcal'),
-                trailing: IconButton(
-                  icon: Icon(
-                    selectedFoods.contains(food) ? Icons.remove_circle : Icons.add_circle,
-                    color: selectedFoods.contains(food) ? Colors.red : Colors.green,
-                  ),
-                  onPressed: () {
-                    if (selectedFoods.contains(food)) {
-                      _removeFood(food);
-                    } else {
-                      _addFood(food);
-                    }
-                  },
-                ),
-              );
-            },
+        Text('Weekly Trends', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Container(
+          height: 150,
+          child: BarChart(
+            BarChartData(
+              barGroups: List.generate(7, (index) => BarChartGroupData(
+                x: index,
+                barRods: [BarChartRodData(toY: (dailyCalorieGoal - _calculateTotalCalories()) / dailyCalorieGoal)],
+              )),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Add Meal Floating Action Button
   Widget _buildAddMealButton() {
     return FloatingActionButton(
       onPressed: () {
-        // Implement function to add a new meal or food item
+        // Additional logic for adding new meals
       },
-      backgroundColor: Colors.green,
       child: Icon(Icons.add),
     );
   }

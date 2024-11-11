@@ -20,7 +20,7 @@ class _HealthAiChatScreenState extends State<HealthAiChatScreen> {
       isLoading = true;
     });
 
-    final apiUrl = "https://api-inference.huggingface.co/models/dmis-lab/biobert-base-cased-v1.1";
+    final apiUrl = "https://api-inference.huggingface.co/models/distilbert-base-uncased-distilled-squad";
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {
@@ -38,7 +38,7 @@ class _HealthAiChatScreenState extends State<HealthAiChatScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      String medicalResponse = data["answer"].toString().trim();
+      String medicalResponse = data[0]["answer"].toString().trim();
       setState(() {
         messages.add({"sender": "AI", "text": medicalResponse});
         isLoading = false;
@@ -47,7 +47,7 @@ class _HealthAiChatScreenState extends State<HealthAiChatScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get response from the medical AI model')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get response from the AI model')));
     }
   }
 
