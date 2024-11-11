@@ -47,7 +47,18 @@ class _HealthAiChatScreenState extends State<HealthAiChatScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to get response from the AI model')));
+      
+      // Extracting the specific error message from the response body
+      String errorMessage = "Failed to get response from the AI model";
+      try {
+        final errorData = json.decode(response.body);
+        errorMessage = errorData['error'] ?? errorMessage;
+      } catch (e) {
+        // Handle case where the error response is not in the expected format
+        errorMessage = "An unexpected error occurred.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
