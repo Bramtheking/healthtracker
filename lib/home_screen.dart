@@ -266,37 +266,25 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildGoalsSection(BuildContext context) {
-    return Container(
+  return Container(
       padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Goals',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/goals');
-                },
-                child: Text('View All'),
-              ),
-            ],
+          Text(
+            'Goals',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
           SizedBox(height: 10),
-          _buildGoalCard(
-            icon: Icons.directions_run,
-            title: 'Daily Exercise Goal',
-            progress: 0.75, // Placeholder progress
-            value: '45/60 mins', // Placeholder; replace with Hive data
-            color: Colors.green,
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/goal');
+            },
+            child: Text('Access your goal here'),
           ),
         ],
       ),
@@ -373,34 +361,25 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildRemindersSection(BuildContext context) {
-    return Container(
+     return Container(
       padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Reminders',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/reminders');
-                },
-                child: Text('View All'),
-              ),
-            ],
+          Text(
+            'Reminder',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
           SizedBox(height: 10),
-          Text(
-            'Take your vitamins at 8:00 AM', // Placeholder reminder
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/reminder');
+            },
+            child: Text('Medication reminder over here'),
           ),
         ],
       ),

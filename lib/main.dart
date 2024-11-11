@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
             '/sleep': (context) => SleepScreen(),
             '/reminder': (context) => RemindersScreen(),
             '/contactDoctor': (context) => ContactDoctorScreen(),
-            '/diet': (context) => DietTrackerScreen(),
+            '/diet': (context) => ModernDietScreen(),
             '/goal': (context) => GoalsScreen(),
             '/settings': (context) => SettingsScreen(),
           },

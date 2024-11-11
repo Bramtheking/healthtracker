@@ -15,9 +15,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
   // Replace this with your actual Hugging Face API key
   final String apiKey = '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';
 
-  // The prompt that sets the context for the GPT-2 model
-  final String promptPrefix = "You are a helpful AI assistant specializing in answering medical-related questions.";
-
   Future<void> getGPT2Response(String message) async {
     setState(() {
       isLoading = true;
@@ -31,14 +28,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
         "Content-Type": "application/json",
       },
       body: json.encode({
-        "inputs": "$promptPrefix\n$message",
+        "inputs": message,  // Send message directly without prefix
         "parameters": {"max_length": 100},
       }),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      String gpt2Response = data[0]["generated_text"].toString().replaceFirst(promptPrefix, "").trim();
+      String gpt2Response = data[0]["generated_text"].toString().trim();
       setState(() {
         messages.add({"sender": "AI", "text": gpt2Response});
         isLoading = false;
