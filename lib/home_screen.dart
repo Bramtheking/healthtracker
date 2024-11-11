@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/ai_chat_screen.dart';
 import 'package:myapp/settings_screen.dart';
+import 'package:myapp/medical_chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HealthAiChatScreen()), // Navigate to AI chat screen
+            MaterialPageRoute(builder: (context) => MedicalChatScreen()), // Navigate to AI chat screen
           );
         },
         backgroundColor: Colors.blue,
