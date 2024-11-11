@@ -4,6 +4,8 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class StepsScreen extends StatefulWidget {
+  const StepsScreen({super.key});
+
   @override
   _StepsScreenState createState() => _StepsScreenState();
 }
@@ -273,14 +275,14 @@ class _StepsScreenState extends State<StepsScreen> with SingleTickerProviderStat
   }
 
   void _showAddStepsDialog() {
-    final _stepsController = TextEditingController();
+    final stepsController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Add Steps Manually'),
         content: TextField(
-          controller: _stepsController,
+          controller: stepsController,
           decoration: InputDecoration(labelText: 'Number of Steps', border: OutlineInputBorder()),
           keyboardType: TextInputType.number,
         ),
@@ -288,14 +290,14 @@ class _StepsScreenState extends State<StepsScreen> with SingleTickerProviderStat
           TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              final steps = int.tryParse(_stepsController.text);
+              final steps = int.tryParse(stepsController.text);
               if (steps != null) {
                 _addSteps(steps);
                 Navigator.pop(context);
               }
             },
-            child: Text('Save'),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: Text('Save'),
           ),
         ],
       ),

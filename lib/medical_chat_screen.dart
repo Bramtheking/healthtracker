@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class MedicalChatScreen extends StatefulWidget {
+  const MedicalChatScreen({super.key});
+
   @override
   _MedicalChatScreenState createState() => _MedicalChatScreenState();
 }
 
 class _MedicalChatScreenState extends State<MedicalChatScreen> {
-  TextEditingController _questionController = TextEditingController();
+  final TextEditingController _questionController = TextEditingController();
   List<Map<String, String>> chatMessages = [];
   bool isLoading = false;
 

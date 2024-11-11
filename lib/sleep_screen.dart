@@ -4,6 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
 class SleepScreen extends StatefulWidget {
+  const SleepScreen({super.key});
+
   @override
   _SleepScreenState createState() => _SleepScreenState();
 }

@@ -3,6 +3,8 @@ import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContactDoctorScreen extends StatefulWidget {
+  const ContactDoctorScreen({super.key});
+
   @override
   _ContactDoctorScreenState createState() => _ContactDoctorScreenState();
 }

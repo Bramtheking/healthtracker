@@ -3,6 +3,8 @@ import 'package:myapp/settings_screen.dart';
 import 'package:myapp/medical_chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

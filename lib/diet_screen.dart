@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 class DietScreen extends StatefulWidget {
+  const DietScreen({super.key});
+
   @override
   _DietScreenState createState() => _DietScreenState();
 }

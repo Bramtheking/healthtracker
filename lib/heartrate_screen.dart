@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:math';  // For random number generation
 
 class HeartRateScreen extends StatefulWidget {
+  const HeartRateScreen({super.key});
+
   @override
   _HeartRateScreenState createState() => _HeartRateScreenState();
 }

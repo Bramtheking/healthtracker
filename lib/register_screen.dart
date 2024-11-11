@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -110,16 +112,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _register();
                       }
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      child: Text('Register', style: TextStyle(fontSize: 18)),
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       elevation: 5,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      child: Text('Register', style: TextStyle(fontSize: 18)),
                     ),
                   ),
                 ),

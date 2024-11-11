@@ -3,6 +3,8 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
 class RemindersScreen extends StatefulWidget {
+  const RemindersScreen({super.key});
+
   @override
   _RemindersScreenState createState() => _RemindersScreenState();
 }
@@ -75,8 +77,8 @@ class _RemindersScreenState extends State<RemindersScreen> with SingleTickerProv
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddReminderDialog(context),
-        child: Icon(Icons.add),
         tooltip: 'Add Reminder',
+        child: Icon(Icons.add),
       ),
     );
   }
