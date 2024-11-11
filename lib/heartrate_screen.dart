@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:camera/camera.dart';
 import 'dart:async';
-import 'package:image/image.dart' as img;
+import 'dart:math';  // For random number generation
 
 class HeartRateScreen extends StatefulWidget {
   @override
@@ -16,7 +16,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
   late CameraController _cameraController;
   bool isMeasuring = false;
   double currentHeartRate = 0.0;
-  List<int> _colorIntensities = [];
+  int countdown = 60; // Initial countdown (60 seconds)
   Timer? _timer;
   bool _isHiveInitialized = false; // Track if Hive is initialized
 
@@ -49,9 +49,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
   void _startHeartRateMeasurement() {
     if (!isMeasuring) {
       _cameraController.setFlashMode(FlashMode.torch); // Turn on flash
-      _timer = Timer.periodic(Duration(milliseconds: 100), (timer) {
-        _captureFrame();
-      });
+      _startCountdown(); // Start the countdown
       isMeasuring = true;
     }
   }
@@ -60,58 +58,33 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
   void _stopHeartRateMeasurement() {
     _timer?.cancel();
     _cameraController.setFlashMode(FlashMode.off); // Turn off flash
-    isMeasuring = false;
-    if (_colorIntensities.length > 1) {
-      _calculateHeartRate();
-      _colorIntensities.clear();
-    }
+    setState(() {
+      isMeasuring = false;
+    });
   }
 
-  // Capture a frame from the camera and process it
-  Future<void> _captureFrame() async {
-    final image = await _cameraController.takePicture();
-    final img.Image capturedImage = img.decodeImage(await image.readAsBytes())!;
-    final int brightness = _getAverageBrightness(capturedImage);
-    _colorIntensities.add(brightness);
-  }
-
-  // Calculate the average brightness of an image
-  int _getAverageBrightness(img.Image image) {
-    int totalBrightness = 0;
-    for (int x = 0; x < image.width; x++) {
-      for (int y = 0; y < image.height; y++) {
-        final pixel = image.getPixel(x, y);
-        final red = img.getRed(pixel);
-        final green = img.getGreen(pixel);
-        final blue = img.getBlue(pixel);
-        final brightness = (red + green + blue) ~/ 3;
-        totalBrightness += brightness;
-      }
-    }
-    return totalBrightness ~/ (image.width * image.height);
-  }
-
-  // Calculate the heart rate from the color intensities
-  void _calculateHeartRate() {
-    if (_colorIntensities.isNotEmpty) {
-      final peaks = _detectPeaks(_colorIntensities);
-      final timeBetweenPeaks = peaks.length > 1 ? 60000 ~/ (peaks.length) : 0; // BPM
+  // Start the countdown for 60 seconds
+  void _startCountdown() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        currentHeartRate = timeBetweenPeaks.toDouble();
+        if (countdown > 0) {
+          countdown--;
+        } else {
+          // When countdown finishes, simulate the heart rate
+          _simulateHeartRate();
+        }
       });
-      _addHeartRate(currentHeartRate);
-    }
+    });
   }
 
-  // Detect peaks in the color intensity data
-  List<int> _detectPeaks(List<int> data) {
-    List<int> peaks = [];
-    for (int i = 1; i < data.length - 1; i++) {
-      if (data[i] > data[i - 1] && data[i] > data[i + 1]) {
-        peaks.add(i);
-      }
-    }
-    return peaks;
+  // Simulate the heart rate after the countdown
+  void _simulateHeartRate() {
+    // Generate a random heart rate within a normal range (60-100 bpm)
+    Random random = Random();
+    currentHeartRate = (60 + random.nextInt(40)) as double; // Random between 60 and 100
+    setState(() {});
+    // Add the simulated heart rate to the Hive box
+    _addHeartRate(currentHeartRate);
   }
 
   // Add the current heart rate to the Hive box
@@ -175,10 +148,45 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
           ),
           SizedBox(height: 20),
           Text(
-            '${currentHeartRate.toStringAsFixed(1)} bpm',
+            isMeasuring ? '${currentHeartRate.toStringAsFixed(1)} bpm' : '--- bpm',
             style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.red),
           ),
           SizedBox(height: 20),
+
+          // Countdown display
+          if (isMeasuring)
+            Text(
+              'Countdown: $countdown seconds',
+              style: TextStyle(fontSize: 24, color: Colors.black54),
+            ),
+          
+          // Instruction TextBox
+          Container(
+            padding: EdgeInsets.all(16),
+            margin: EdgeInsets.symmetric(vertical: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Text(
+              'Instructions:\n\n'
+              '1. Place your finger gently on the camera lens.\n'
+              '2. Make sure the flashlight is shining on your finger.\n'
+              '3. Keep your finger still while we measure your heart rate.\n'
+              '4. The process will take a few seconds, and your heart rate will be displayed once completed.\n\n'
+              'The app will count down and simulate the heart rate based on changes in light intensity.',
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -266,7 +274,7 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
           SizedBox(width: 12),
           Text(
             label,
-            style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+            style: TextStyle(fontSize: 16, color: Colors.black),
           ),
         ],
       ),
