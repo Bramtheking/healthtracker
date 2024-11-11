@@ -23,6 +23,7 @@ dependencies:
   url_launcher: ^6.0.20
   http: ^0.13.3
   provider: ^6.1.2
+  lucide_icons: ^0.257.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
