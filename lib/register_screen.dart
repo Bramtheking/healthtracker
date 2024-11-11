@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -18,156 +18,148 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _errorMessageVisible = false;
 
   void _register() async {
-  final box = await Hive.openBox('users');
-  final username = _usernameController.text.trim();
-  final password = _passwordController.text.trim();
-  final name = _nameController.text.trim();
-  final email = _emailController.text.trim();
-  final ageText = _ageController.text.trim();
-  final age = int.tryParse(ageText);
-  final place = _placeController.text.trim();
+    final box = await Hive.openBox('users');
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final age = int.tryParse(_ageController.text.trim());
+    final place = _placeController.text.trim();
 
-  if (age == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please enter a valid age.')),
-    );
-    return;
+    if (box.containsKey(username)) {
+      setState(() {
+        _errorMessageVisible = true;
+      });
+    } else {
+      await box.put(username, {
+        'password': password,
+        'name': name,
+        'email': email,
+        'age': age,
+        'place': place,
+      });
+
+      setState(() {
+        _errorMessageVisible = false;
+      });
+
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registered successfully! Now wnter your login details')),
+      );
+
+      // Navigate to the home screen
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
-
-  if (box.containsKey(username)) {
-    setState(() {
-      _errorMessageVisible = true;
-    });
-  } else {
-    await box.put(username, {
-      'password': password,
-      'name': name,
-      'email': email,
-      'age': age,
-      'place': place,
-    });
-
-    setState(() {
-      _errorMessageVisible = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Registered successfully!')),
-    );
-
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-        backgroundColor: const Color.fromARGB(255, 37, 174, 253),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                Center(
+      appBar: AppBar(title: Text('Register')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Create Account',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Full Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your full name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
+                    return 'Enter a valid email address';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _usernameController,
+                decoration: InputDecoration(labelText: 'Username'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a username';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password should be at least 6 characters';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _ageController,
+                decoration: InputDecoration(labelText: 'Age'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your age';
+                  }
+                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    return 'Please enter a valid age';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _placeController,
+                decoration: InputDecoration(labelText: 'Place of Residence'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your place of residence';
+                  }
+                  return null;
+                },
+              ),
+              if (_errorMessageVisible)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
-                    'Create Account',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.teal),
+                    'Username already exists.',
+                    style: TextStyle(color: Colors.red),
                   ),
                 ),
-                SizedBox(height: 30),
-                _buildTextField(_nameController, 'Full Name', Icons.person),
-                _buildTextField(_emailController, 'Email', Icons.email, keyboardType: TextInputType.emailAddress),
-                _buildTextField(_usernameController, 'Username', Icons.account_circle),
-                _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
-                _buildTextField(_ageController, 'Age', Icons.calendar_today, keyboardType: TextInputType.number),
-                _buildTextField(_placeController, 'Place of Residence', Icons.home),
-                if (_errorMessageVisible)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Center(
-                      child: Text(
-                        'Username already exists.',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _register();
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      child: Text('Register', style: TextStyle(fontSize: 18)),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 21, 109, 241),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      elevation: 5,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 30),
-              ],
-            ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _register();
+                  }
+                },
+                child: Text('Register'),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon,
-      {bool isPassword = false, TextInputType keyboardType = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon, color: Colors.teal),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: const Color.fromARGB(255, 22, 95, 253)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: const Color.fromARGB(255, 28, 149, 248), width: 2),
-          ),
-          filled: true,
-          fillColor: Colors.grey[100],
-        ),
-        obscureText: isPassword,
-        keyboardType: keyboardType,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label.toLowerCase()';
-          }
-          if (label == 'Email' && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}").hasMatch(value)) {
-            return 'Enter a valid email address';
-          }
-          if (label == 'Password' && value.length < 6) {
-            return 'Password should be at least 6 characters';
-          }
-          if (label == 'Age' && int.tryParse(value) == null || int.parse(value) <= 0) {
-            return 'Please enter a valid age';
-          }
-          return null;
-        },
       ),
     );
   }
