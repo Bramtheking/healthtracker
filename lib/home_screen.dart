@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => MedicalChatScreen()), // Navigate to AI chat screen
+            MaterialPageRoute(builder: (context) => HealthChatScreen()), // Navigate to AI chat screen
           );
         },
         backgroundColor: Colors.blue,
