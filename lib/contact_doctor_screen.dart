@@ -96,8 +96,8 @@ class _ContactDoctorScreenState extends State<ContactDoctorScreen> {
   }
 
   void _callEmergency() async {
-    if (await canLaunch('tel:911')) {
-      await launch('tel:911');
+    if (await canLaunch('tel:999')) {
+      await launch('tel:999');
     } else {
       _showSnackbar('Could not launch emergency call');
     }
@@ -146,7 +146,7 @@ class _ContactDoctorScreenState extends State<ContactDoctorScreen> {
                     backgroundColor: Colors.red,
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   ),
-                  child: Text('Emergency Call 911'),
+                  child: Text('Emergency Call 999'),
                 ),
               ],
             ),
